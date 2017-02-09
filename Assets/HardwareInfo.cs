@@ -16,101 +16,138 @@ namespace Softdrink{
 		// Class for holding simple system info used for comparison
 		[System.Serializable]
 		public class SimpleHardwareInfo{
+			[HideInInspector]
+			public bool initialized = false;
+
 			// SIMPLE HARDWRE PARAMETERS
-			// [HideInInspector]
+			[TooltipAttribute("Device type. Options are 'Desktop' (for Laptop, Tablet, or Desktop), 'Console', 'Handheld', 'Unknown'.")]
 			public DeviceType deviceType = DeviceType.Unknown;
-			// [HideInInspector]
+			[TooltipAttribute("GPU Rendering API information. See Rendering.GraphicsDeviceType documentation for details.")]
+			public UnityEngine.Rendering.GraphicsDeviceType gpuDeviceType = UnityEngine.Rendering.GraphicsDeviceType.Null;
+
+			[SpaceAttribute(10)]
+
+			[TooltipAttribute("Graphics memory (VRAM), in MB. A value of -1 indicates an error.")]
 			public int gpuMemory = -1;
-			// [HideInInspector]
+			[TooltipAttribute("Graphics ability to multithread. Default is false.")]
 			public bool gpuMultiThread = false;
-			// [HideInInspector]
+			[TooltipAttribute("Graphics Shader Level. See SystemInfo.GraphicsShaderLevel documentation for details. A value of -1 indicates an error.")]
 			public int gpuShaderLevel = -1;
-			// [HideInInspector]
+			[TooltipAttribute("Maximum texture size supported by the GPU, in pixels. A value of -1 indicates an error.")]
 			public int maxTextureSize = -1;
-			// // [HideInInspector]
-			// public UnityEngine.OperatingSystemFamily operatingSystemFamily = UnityEngine.OperatingSystemFamily.Other;
-			// [HideInInspector]
-			public int processorCount = -1;
-			// [HideInInspector]
-			public int processorFrequency = -1;
-			// [HideInInspector]
-			public bool supportsImageEffects = false;
-			// [HideInInspector]
-			public bool supportsShadows = false;
-			// [HideInInspector]
+
+			[SpaceAttribute(10)]
+
+			[TooltipAttribute("System memory (RAM), in MB. A value of -1 indicates an error.")]
 			public int systemMemory = -1;
+			[TooltipAttribute("Logical processor threads. A value of -1 indicates an error.")]
+			public int processorCount = -1;
+			[TooltipAttribute("Processor speed, in MHz. A value of -1 indicates an error.")]
+			public int processorFrequency = -1;
+			[TooltipAttribute("Does the system support GPU Compute Shaders? Defaults to false.")]
+
+			[SpaceAttribute(10)]
+
+			public bool supportsComputeShaders = false;
+			[TooltipAttribute("Does the system support Image Effects and GPU-accelerated Post Processing? Defaults to false.")]
+			public bool supportsImageEffects = false;
+			[TooltipAttribute("Does the system support shadows? Defaults to false.")]
+			public bool supportsShadows = false;
+
+			[SpaceAttribute(10)]
+			[SerializeField]
+			[Range(1.0f,3.5f)]
+			[TooltipAttribute("SLI cannot be detected by Unity, so this number will multiply the GPU score to 'approximate' effect of SLI. Default is 1.0. \nSLI scaling is non-linear and varies by GPU, but a safe number for a dual-card system would be about 1.6.")]
+			private float SLIScalar = 1.0f;
 
 			public SimpleHardwareInfo(){
-
+				initialized = true;
 			}
 			
 			// Set the hardwareInfo using the current system config
 			public void SetFromCurrentConfig(){
 				deviceType = SystemInfo.deviceType;
+				gpuDeviceType = SystemInfo.graphicsDeviceType;
 				gpuMemory = SystemInfo.graphicsMemorySize;
 				gpuMultiThread = SystemInfo.graphicsMultiThreaded;
 				gpuShaderLevel = SystemInfo.graphicsShaderLevel;
 				maxTextureSize = SystemInfo.maxTextureSize;
 				processorCount = SystemInfo.processorCount;
 				processorFrequency = SystemInfo.processorFrequency;
+				supportsComputeShaders = SystemInfo.supportsComputeShaders;
 				supportsImageEffects = SystemInfo.supportsImageEffects;
 				supportsShadows = SystemInfo.supportsShadows;
 				systemMemory = SystemInfo.systemMemorySize;
+			}
+
+			// Clear the current hardwareInfo
+			public void Clear(){
+				deviceType = DeviceType.Unknown;
+				gpuDeviceType = UnityEngine.Rendering.GraphicsDeviceType.Null;
+				gpuMemory = -1;
+				gpuMultiThread = false;
+				gpuShaderLevel = -1;
+				maxTextureSize = -1;
+				processorCount = -1;
+				processorFrequency = -1;
+				supportsComputeShaders = false;
+				supportsImageEffects = false;
+				supportsShadows = false;
+				systemMemory = -1;
+
+				SLIScalar = 1.0f;
+
+				initialized = false;
 			}
 		}
 
 		// Class for holding complex system info - all properties including 'useless' stuff
 		[System.Serializable]
 		public class ComplexHardwareInfo{
-			// [HideInInspector]
+			[HideInInspector]
+			public bool initialized = false;
+
 			public string deviceModel = "";
-			// [HideInInspector]
 			public string deviceName = "";
-			// [HideInInspector]
 			public DeviceType deviceType = DeviceType.Unknown;
-			// [HideInInspector]
 			public string deviceID = "";
-			// [HideInInspector]
 			public int gpuDeviceID = -1;
-			// [HideInInspector]
 			public string gpuDeviceName = "";
-			// [HideInInspector]
 			public UnityEngine.Rendering.GraphicsDeviceType gpuDeviceType = UnityEngine.Rendering.GraphicsDeviceType.Null;
-			// [HideInInspector]
 			public string gpuDeviceVendor = "";
-			// [HideInInspector]
 			public int gpuDeviceVendorID = -1;
-			// [HideInInspector]
 			public string gpuDeviceVersion = "";
-			// [HideInInspector]
 			public int gpuMemory = -1;
-			// [HideInInspector]
 			public bool gpuMultiThread = false;
-			// [HideInInspector]
 			public int gpuShaderLevel = -1;
-			// [HideInInspector]
 			public int maxTextureSize = -1;
-			// [HideInInspector]
 			public NPOTSupport npotSupport = NPOTSupport.None;
-			// [HideInInspector]
 			public string operatingSystem = "";
-			// // [HideInInspector]
 			// public UnityEngine.OperatingSystemFamily operatingSystemFamily = UnityEngine.OperatingSystemFamily.Other;
-			// [HideInInspector]
 			public int processorCount = -1;
-			// [HideInInspector]
 			public int processorFrequency = -1;
-			// [HideInInspector]
 			public string processorType = "";
-			// [HideInInspector]
+			public int supportedRenderTargetCount = -1;
+			public bool supports2DArrayTextures = false;
+			public bool supports3DTextures = false;
+			public bool supportsAudio = false;
+			public bool supportsComputeShaders = false;
+			// public bool supportsCubemapArrayTextures = false;
+			public bool supportsGyroscope = false;
 			public bool supportsImageEffects = false;
-			// [HideInInspector]
+			public bool supportsInstancing = false;
+			public bool supportsLocationService = false;
+			public bool supportsMotionVectors = false;
+			public bool supportsRawShadowDepthSampling = false;
+			public bool supportsRenderToCubemap = false;
 			public bool supportsShadows = false;
-			// [HideInInspector]
+			public bool supportsSparseTextures = false;
+			public bool supportsVibration = false;
+			// public bool usesReversedZBuffer = false;
 			public int systemMemory = -1;
 
 			public ComplexHardwareInfo(){
-
+				initialized = true;
 			}
 
 			// Set the hardwareInfo using the current system config
@@ -135,17 +172,83 @@ namespace Softdrink{
 				processorCount = SystemInfo.processorCount;
 				processorFrequency = SystemInfo.processorFrequency;
 				processorType = SystemInfo.processorType;
+				supportedRenderTargetCount = SystemInfo.supportedRenderTargetCount;
+				supports2DArrayTextures = SystemInfo.supports2DArrayTextures;
+				supports3DTextures = SystemInfo.supports3DTextures;
+				supportsAudio = SystemInfo.supportsAudio;
+				supportsComputeShaders = SystemInfo.supportsComputeShaders;
+				//supportsCubemapArrayTextures = SystemInfo.supportsCubemapArrayTextures;
+				supportsGyroscope = SystemInfo.supportsGyroscope;
 				supportsImageEffects = SystemInfo.supportsImageEffects;
+				supportsInstancing = SystemInfo.supportsInstancing;
+				supportsLocationService = SystemInfo.supportsLocationService;
+				supportsMotionVectors = SystemInfo.supportsMotionVectors;
+				supportsRawShadowDepthSampling = SystemInfo.supportsRawShadowDepthSampling;
+				supportsRenderToCubemap = SystemInfo.supportsRenderToCubemap;
 				supportsShadows = SystemInfo.supportsShadows;
+				supportsSparseTextures = SystemInfo.supportsSparseTextures;
+				supportsVibration = SystemInfo.supportsVibration;
+				//usesReversedZBuffer = SystemInfo.usesReversedZBuffer;
 				systemMemory = SystemInfo.systemMemorySize;
 			}
+		}
+
+		// Class for storing the weighting information for different parameters
+		[System.Serializable]
+		public class HardwareComparisonWeights{
+			[HideInInspector]
+			public bool initialized = false;
+
+			[SpaceAttribute(10)]
+			[HeaderAttribute("Device Type Weights")]
+			// Weights for device type
+			[Range(0.0f, 1.0f)]
+			public float desktopWeight = 1.0f;
+			[Range(0.0f, 1.0f)]
+			public float consoleWeight = 1.0f;
+			[Range(0.0f, 1.0f)]
+			public float handheldWeight = 0.7f;
+
+			[SpaceAttribute(10)]
+			[HeaderAttribute("Main Property Weights")]
+			// Weights for main categories - CPU, GPU
+			[Range(0.0f, 1.0f)]
+			public float CPUWeight = 0.5f;
+			[Range(0.0f, 1.0f)]
+			public float GPUWeight = 0.5f;
+			// Weight for RAM
+			[Range(0.0f, 1.0f)]
+			public float RAMWeight = 0.25f;
+
+			[SpaceAttribute(10)]
+			[HeaderAttribute("Penalties")]
+			// Weight for Compute Shaders
+			[Range(0.0f, 1.0f)]
+			public float computePenalty = 0.5f;
+			// Weight for Image Effects
+			[Range(0.0f, 1.0f)]
+			public float imageEffectPenalty = 0.5f;
+			// Weight for Shadow support
+			[Range(0.0f, 1.0f)]
+			public float shadowPenalty = 0.9f;
+
+			public HardwareComparisonWeights(){
+				initialized = true;
+			}
+
 		}
 
 		// Singleton instance
 		public static HardwareInfo Instance = null;
 
+		[SerializeField]
+		private HardwareComparisonWeights comparisonWeights;
+
 		// Toggle for SIMPLE vs COMPLEX data
 		[SerializeField]
+		[SpaceAttribute(10)]
+		[ContextMenuItem ("Set Reference", "SetReference")]
+		[ContextMenuItem ("Clear Reference", "ClearReference")]
 		private bool useComplexHardwareData = false;
 		// SIMPLE DATA is defined as what is necessary for the comparison operation:
 		// Device Type
@@ -155,15 +258,24 @@ namespace Softdrink{
 		// GPU max texture size
 		// CPU frequency
 		// System Memory
+		// Support for Compute Shaders
 		// Support for Image Effects
 		// Support for Shadows
 
 		// COMPLEX DATA is defined as all other data
 
+		// Add a ContextMenu item to set the reference configuration
+		[SpaceAttribute(10)]
+		[ContextMenuItem ("Set Reference", "SetReference")]
+		[ContextMenuItem ("Clear Reference", "ClearReference")]
 		public SimpleHardwareInfo referenceConfiguration;
+		[ContextMenuItem ("Set Reference", "SetReference")]
+		[ContextMenuItem ("Clear Reference", "ClearReference")]
 		public SimpleHardwareInfo userConfiguration;
 
 		// [HideInInspector]
+		[ContextMenuItem ("Set Reference", "SetReference")]
+		[ContextMenuItem ("Clear Reference", "ClearReference")]
 		public ComplexHardwareInfo complexUserConfiguration;
 
 		void Awake (){
@@ -177,26 +289,30 @@ namespace Softdrink{
 				Debug.LogError("ERROR! The HardwareInfo script encountered another instance of HardwareInfo; it destroyed itself rather than overwrite the existing instance.", this);
 			}
 
-			referenceConfiguration = new SimpleHardwareInfo();
+			// Create the Weights if they do not already exist
+			if(comparisonWeights == null || comparisonWeights.initialized == false) comparisonWeights = new HardwareComparisonWeights();
+
+			// Create the Reference info from the current config if it does not already exist
+			if(referenceConfiguration == null || referenceConfiguration.initialized == false) referenceConfiguration = new SimpleHardwareInfo();
+			// Create the User info from the current config
 			userConfiguration = new SimpleHardwareInfo();
 			userConfiguration.SetFromCurrentConfig();
 
+			// If we are using complex info, create it from the current info
 			if(useComplexHardwareData){
 				complexUserConfiguration = new ComplexHardwareInfo();
 				complexUserConfiguration.SetFromCurrentConfig();
-			}
+			}else complexUserConfiguration = null;					// Otherwise set it to null for GC to deal with it later
 
-			// Get hardware info 
-			// userConfiguration.deviceType = SystemInfo.deviceType;
-			// userConfiguration.gpuMemory = SystemInfo.graphicsMemorySize;
-			// userConfiguration.gpuMultiThread = SystemInfo.graphicsMultiThreaded;
-			// userConfiguration.gpuShaderLevel = SystemInfo.graphicsShaderLevel;
-			// userConfiguration.maxTextureSize = SystemInfo.maxTextureSize;
-			// userConfiguration.processorCount = SystemInfo.processorCount;
-			// userConfiguration.processorFrequency = SystemInfo.processorFrequency;
-			// userConfiguration.supportsImageEffects = SystemInfo.supportsImageEffects;
-			// userConfiguration.supportsShadows = SystemInfo.supportsShadows;
-			// userConfiguration.systemMemory = SystemInfo.systemMemorySize;
+		}
+
+		void SetReference(){
+			referenceConfiguration.SetFromCurrentConfig();
+		}
+
+		void ClearReference(){
+			referenceConfiguration.Clear();
+			referenceConfiguration = null;
 		}
 
 	}
