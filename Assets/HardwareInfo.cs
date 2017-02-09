@@ -55,10 +55,9 @@ namespace Softdrink{
 			public bool supportsShadows = false;
 
 			[SpaceAttribute(10)]
-			[SerializeField]
 			[Range(1.0f,3.5f)]
 			[TooltipAttribute("SLI cannot be detected by Unity, so this number will multiply the GPU score to 'approximate' effect of SLI. Default is 1.0. \nSLI scaling is non-linear and varies by GPU, but a safe number for a dual-card system would be about 1.6.")]
-			private float SLIScalar = 1.0f;
+			public float SLIScalar = 1.0f;
 
 			public SimpleHardwareInfo(){
 				initialized = true;
@@ -209,16 +208,16 @@ namespace Softdrink{
 			[Range(0.0f, 1.0f)]
 			public float handheldWeight = 0.7f;
 
-			[SpaceAttribute(10)]
-			[HeaderAttribute("Main Property Weights")]
+			//[SpaceAttribute(10)]
+			//[HeaderAttribute("Main Property Weights")]
 			// Weights for main categories - CPU, GPU
-			[Range(0.0f, 1.0f)]
-			public float CPUWeight = 0.5f;
-			[Range(0.0f, 1.0f)]
-			public float GPUWeight = 0.5f;
+			//[Range(0.0f, 1.0f)]
+			//public float CPUWeight = 0.5f;
+			//[Range(0.0f, 1.0f)]
+			//public float GPUWeight = 0.5f;
 			// Weight for RAM
-			[Range(0.0f, 1.0f)]
-			public float RAMWeight = 0.25f;
+			//[Range(0.0f, 1.0f)]
+			//public float RAMWeight = 0.25f;
 
 			[SpaceAttribute(10)]
 			[HeaderAttribute("Penalties")]
@@ -227,7 +226,7 @@ namespace Softdrink{
 			public float computePenalty = 0.5f;
 			// Weight for Image Effects
 			[Range(0.0f, 1.0f)]
-			public float imageEffectPenalty = 0.5f;
+			public float imageEffectPenalty = 0.25f;
 			// Weight for Shadow support
 			[Range(0.0f, 1.0f)]
 			public float shadowPenalty = 0.9f;
@@ -240,6 +239,26 @@ namespace Softdrink{
 
 		// Singleton instance
 		public static HardwareInfo Instance = null;
+
+		[HeaderAttribute("Final User Score")]
+		[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
+		public float userHardwareScore = 0.0f;
+
+		[HeaderAttribute("Breakdown")]
+
+		[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
+		public float userGPUScore = 0.0f;
+		[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
+		public float userCPUScore = 0.0f;
+
+		[HeaderAttribute("Warnings")]
+
+		[SerializeField]
+		[TextArea(6,6)]
+		[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
+		private string compatibilityWarnings = "";
+
+		[SpaceAttribute(20)]
 
 		[SerializeField]
 		private HardwareComparisonWeights comparisonWeights;
@@ -304,8 +323,89 @@ namespace Softdrink{
 				complexUserConfiguration.SetFromCurrentConfig();
 			}else complexUserConfiguration = null;					// Otherwise set it to null for GC to deal with it later
 
+			// Calculate user score
+			CalculateHardwareScore();
+
 		}
 
+		// Calculate user hardware score
+		void CalculateHardwareScore(){
+
+			// Clear compatibility warnings
+			compatibilityWarnings = "";
+
+			float basePoints = 100.0f;
+			if(userConfiguration.deviceType == referenceConfiguration.deviceType) basePoints *= 1.0f;
+			else{
+				if(userConfiguration.deviceType == DeviceType.Desktop) basePoints *= comparisonWeights.desktopWeight;
+				if(userConfiguration.deviceType == DeviceType.Console) basePoints *= comparisonWeights.consoleWeight;
+				if(userConfiguration.deviceType == DeviceType.Handheld) basePoints *= comparisonWeights.handheldWeight;
+			}
+
+			float GPUScore = 1.0f;
+			GPUScore *= (float)(userConfiguration.gpuMemory)/(float)(referenceConfiguration.gpuMemory);
+			GPUScore *= (float)(userConfiguration.gpuShaderLevel)/(float)(referenceConfiguration.gpuShaderLevel);
+			// If there is a difference of more than 5 in reference and user GPU shader levels, create a warning
+			if((referenceConfiguration.gpuShaderLevel - userConfiguration.gpuShaderLevel) > 5){
+				compatibilityWarnings += "WARNING: The reference configuration and user configuration support different Shader Models. This may cause incompatibility or rendering issues.\n";
+			}
+			GPUScore *= (float)(userConfiguration.maxTextureSize)/(float)(referenceConfiguration.maxTextureSize);
+			if(userConfiguration.gpuMultiThread == false && referenceConfiguration.gpuMultiThread == true){
+				GPUScore *= 0.5f;
+				compatibilityWarnings += "WARNING: The reference configuration supports GPU multithreading, but the user configuration does not!\n";
+			}
+			GPUScore *= userConfiguration.SLIScalar/referenceConfiguration.SLIScalar;
+			//GPUScore *= comparisonWeights.GPUWeight;
+			userGPUScore = GPUScore * 100.0f;
+
+			float CPUScore = 1.0f;
+			CPUScore *= (float)userConfiguration.processorCount/(float)referenceConfiguration.processorCount;
+			CPUScore *= (float)userConfiguration.processorFrequency/(float)referenceConfiguration.processorFrequency;
+			//CPUScore *= comparisonWeights.CPUWeight;
+			userCPUScore = CPUScore * 100.0f;
+
+			float RAMScore = 1.0f;
+			RAMScore *= (float)userConfiguration.systemMemory/(float)referenceConfiguration.systemMemory;
+			//RAMScore *= comparisonWeights.RAMWeight;
+
+			float avgScore = CPUScore + GPUScore + RAMScore;
+			avgScore = avgScore / 3.0f;
+
+			//float penalties = 0.0f;
+			Vector3 penaltyVect = new Vector3(comparisonWeights.shadowPenalty, comparisonWeights.computePenalty, comparisonWeights.imageEffectPenalty);
+			//float penaltySize = penaltyVect.x + penaltyVect.y + penaltyVect.z;
+			//penaltyVect *= 1.0f/penaltySize;
+			// penaltyVect.Normalize();
+			if(userConfiguration.supportsShadows == referenceConfiguration.supportsShadows) avgScore *= 1.0f;
+			else{
+				if(userConfiguration.supportsShadows == false && referenceConfiguration.supportsShadows == true){
+					avgScore *= (1.0f - penaltyVect.x);
+					compatibilityWarnings += "WARNING: The reference configuration supports shadows, but the user configuration does not!\n";
+				}
+			}
+			if(userConfiguration.supportsComputeShaders == referenceConfiguration.supportsComputeShaders) avgScore *= 1.0f;
+			else{
+				if(userConfiguration.supportsComputeShaders == false && referenceConfiguration.supportsComputeShaders == true){
+					avgScore *= (1.0f - penaltyVect.y);
+					compatibilityWarnings += "WARNING: The reference configuration supports Compute Shaders, but the user configuration does not!\n";
+				}
+			}
+			if(userConfiguration.supportsImageEffects == referenceConfiguration.supportsImageEffects) avgScore *= 1.0f;
+			else{
+				if(userConfiguration.supportsImageEffects == false && referenceConfiguration.supportsImageEffects == true){
+					avgScore *= (1.0f - penaltyVect.z);
+					compatibilityWarnings += "WARNING: The reference configuration supports Image Effects, but the user configuration does not!\n";
+				}
+			}
+
+			//avgScore *= (1.0f - penalties);
+			
+
+			userHardwareScore = avgScore*basePoints;
+			//userHardwareScore = penalties;
+		}
+
+		// Set and clear reference values
 		void SetReference(){
 			referenceConfiguration.SetFromCurrentConfig();
 		}
