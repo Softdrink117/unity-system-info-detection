@@ -342,6 +342,9 @@ namespace Softdrink{
 				if(userConfiguration.deviceType == DeviceType.Handheld) basePoints *= comparisonWeights.handheldWeight;
 			}
 
+			// Check that they use the same graphics APIs and flag a warning if not
+			if(userConfiguration.gpuDeviceType != referenceConfiguration.gpuDeviceType) compatibilityWarnings += "WARNING: The reference configration and user configuration are using different graphics APIs. This may cause incompatibility or rendering issues.\n";
+
 			float GPUScore = 1.0f;
 			GPUScore *= (float)(userConfiguration.gpuMemory)/(float)(referenceConfiguration.gpuMemory);
 			GPUScore *= (float)(userConfiguration.gpuShaderLevel)/(float)(referenceConfiguration.gpuShaderLevel);
