@@ -198,14 +198,16 @@ namespace Softdrink{
 			[HideInInspector]
 			public bool initialized = false;
 
-			[SpaceAttribute(10)]
 			[HeaderAttribute("Device Type Weights")]
 			// Weights for device type
 			[Range(0.0f, 1.0f)]
+			[TooltipAttribute("Weight for the Desktop device type (which includes Laptops and some Tablets). Points are set to 100 * this value.")]
 			public float desktopWeight = 1.0f;
 			[Range(0.0f, 1.0f)]
+			[TooltipAttribute("Weight for the Console device type. Points are set to 100 * this value.")]
 			public float consoleWeight = 1.0f;
 			[Range(0.0f, 1.0f)]
+			[TooltipAttribute("Weight for the Console device type. Points are set to 100 * this value.")]
 			public float handheldWeight = 0.7f;
 
 			//[SpaceAttribute(10)]
@@ -218,17 +220,27 @@ namespace Softdrink{
 			// Weight for RAM
 			//[Range(0.0f, 1.0f)]
 			//public float RAMWeight = 0.25f;
+			[SpaceAttribute(10)]
+			[Range(1,8)]
+			[TooltipAttribute("If the User's Processor has more than this many logical cores, the additional ones do not factor into the score. \nThis is helpful since Unity primarily stresses only one thread.")]
+			public int ignoreCoresAbove = 2;
 
 			[SpaceAttribute(10)]
 			[HeaderAttribute("Penalties")]
+			[Range(0.0f, 1.0f)]
+			[TooltipAttribute("Penalty for failing to support GPU multithreading. GPU score -= (GPU score * this value).")]
+			public float gpuMultithreadPenalty = 0.5f;
 			// Weight for Compute Shaders
 			[Range(0.0f, 1.0f)]
+			[TooltipAttribute("Penalty for failing to support Compute Shaders. Score -= (score * this value).")]
 			public float computePenalty = 0.5f;
 			// Weight for Image Effects
 			[Range(0.0f, 1.0f)]
+			[TooltipAttribute("Penalty for failing to support Image Effects. Score -= (score * this value).")]
 			public float imageEffectPenalty = 0.25f;
 			// Weight for Shadow support
 			[Range(0.0f, 1.0f)]
+			[TooltipAttribute("Penalty for failing to support Shadows. Score -= (score * this value).")]
 			public float shadowPenalty = 0.9f;
 
 			public HardwareComparisonWeights(){
@@ -242,21 +254,24 @@ namespace Softdrink{
 
 		[HeaderAttribute("Final User Score")]
 		[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
+		[TooltipAttribute("The final calculated User Hardware Score, calibrated to a scale of 100. \nA score of 100 means that the User hardware matches the Reference hardware exactly. \nLess than 100 means the User is a lesser system, and more than 100 means the User is a greater system.")]
 		public float userHardwareScore = 0.0f;
 
 		[HeaderAttribute("Breakdown")]
 
 		[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
+		[TooltipAttribute("The GPU score for the User System, calibrated to a scale of 100 where 100 = Reference.")]
 		public float userGPUScore = 0.0f;
 		[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
+		[TooltipAttribute("The CPU score for the User System, calibrated to a scale of 100 where 100 = Reference.")]
 		public float userCPUScore = 0.0f;
 
 		[HeaderAttribute("Warnings")]
 
-		[SerializeField]
-		[TextArea(6,6)]
-		[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
-		private string compatibilityWarnings = "";
+		[HideInInspector]
+		//[TextArea(6,6)]
+		//[ContextMenuItem ("Calculate Score", "CalculateHardwareScore")]
+		public string compatibilityWarnings = "";
 
 		[SpaceAttribute(20)]
 
@@ -329,7 +344,7 @@ namespace Softdrink{
 		}
 
 		// Calculate user hardware score
-		void CalculateHardwareScore(){
+		public void CalculateHardwareScore(){
 
 			// Clear compatibility warnings
 			compatibilityWarnings = "";
@@ -354,7 +369,7 @@ namespace Softdrink{
 			}
 			GPUScore *= (float)(userConfiguration.maxTextureSize)/(float)(referenceConfiguration.maxTextureSize);
 			if(userConfiguration.gpuMultiThread == false && referenceConfiguration.gpuMultiThread == true){
-				GPUScore *= 0.5f;
+				GPUScore -= (GPUScore * comparisonWeights.gpuMultithreadPenalty);
 				compatibilityWarnings += "WARNING: The reference configuration supports GPU multithreading, but the user configuration does not!\n";
 			}
 			GPUScore *= userConfiguration.SLIScalar/referenceConfiguration.SLIScalar;
@@ -362,7 +377,8 @@ namespace Softdrink{
 			userGPUScore = GPUScore * 100.0f;
 
 			float CPUScore = 1.0f;
-			CPUScore *= (float)userConfiguration.processorCount/(float)referenceConfiguration.processorCount;
+			if(userConfiguration.processorCount > comparisonWeights.ignoreCoresAbove) CPUScore *= 1.0f;
+			else CPUScore *= (float)userConfiguration.processorCount/(float)referenceConfiguration.processorCount;
 			CPUScore *= (float)userConfiguration.processorFrequency/(float)referenceConfiguration.processorFrequency;
 			//CPUScore *= comparisonWeights.CPUWeight;
 			userCPUScore = CPUScore * 100.0f;
@@ -409,11 +425,11 @@ namespace Softdrink{
 		}
 
 		// Set and clear reference values
-		void SetReference(){
+		public void SetReference(){
 			referenceConfiguration.SetFromCurrentConfig();
 		}
 
-		void ClearReference(){
+		public void ClearReference(){
 			referenceConfiguration.Clear();
 			referenceConfiguration = null;
 		}
