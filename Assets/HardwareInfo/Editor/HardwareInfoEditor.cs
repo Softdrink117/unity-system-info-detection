@@ -12,6 +12,7 @@ namespace Softdrink{
 			if(GUILayout.Button("Calculate Score")){
 				hwInfo.CalculateHardwareScore();
 			}
+			EditorGUILayout.Space();
 			// Buttons for setting and clearing reference config
 			if(GUILayout.Button("Set Reference Configuration")){
 				hwInfo.SetReference();
@@ -19,6 +20,8 @@ namespace Softdrink{
 			if(GUILayout.Button("Clear Reference Configuration")){
 				hwInfo.ClearReference();
 			}
+			EditorGUILayout.Space();
+			EditorGUILayout.Space();
 
 			// Display warnings if they exist
 			string warnings = hwInfo.compatibilityWarnings;

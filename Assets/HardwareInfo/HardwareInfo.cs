@@ -424,6 +424,31 @@ namespace Softdrink{
 			//userHardwareScore = penalties;
 		}
 
+		// Get Compatibility Warnings, or check if they exist at all
+		public static bool CompatibilityCheck(){
+			if(Instance.compatibilityWarnings.Length > 0) return false;
+
+			return true;
+		}
+		public static string GetWarnings(){
+			return Instance.compatibilityWarnings;
+		}
+
+		// Get User, Reference, and Complex User Data
+		public static SimpleHardwareInfo GetUserHardwareInfo(){
+			return Instance.userConfiguration;
+		}
+
+		public static SimpleHardwareInfo GetReferenceHardwareInfo(){
+			return Instance.referenceConfiguration;
+		}
+
+		public static ComplexHardwareInfo GetComplexUserHardwareInfo(){
+			if(Instance.complexUserConfiguration != null) return Instance.complexUserConfiguration;
+
+			return null;
+		}
+
 		// Set and clear reference values
 		public void SetReference(){
 			referenceConfiguration.SetFromCurrentConfig();
