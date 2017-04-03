@@ -1,0 +1,3 @@
+-Create a function (editor script? or just another Component?) that lets users run a test on the current machine and save the hardware score and some performance benchmark (FPS?)
+-Create some utitlity that stores various scores
+-Create some utility that compares all scores, creates line of best fit, and places the current machine score relative to the line of best fit. This allows for performance-metric based scaling of effects and such, using a database of existing scores.
